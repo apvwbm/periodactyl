@@ -2,7 +2,7 @@
   "expo": {
     "name": "PERIODactyl",
     "slug": "periodactyl",
-    "version": "1.1.1",
+    "version": "1.2.0",
     "orientation": "portrait",
     "scheme": "periodactyl",
     "icon": "./assets/icon.png",
@@ -13,7 +13,7 @@
     },
     "android": {
       "package": "com.aitorperez.periodactyl",
-      "versionCode": 3,
+      "versionCode": 4,
       "allowBackup": false,
       "blockedPermissions": [
         "android.permission.INTERNET",

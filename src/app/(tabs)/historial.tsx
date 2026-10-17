@@ -1,6 +1,6 @@
 // Historial: cifras de los últimos 6 ciclos, dos gráficas para ver de un vistazo si los
-// ciclos o las reglas se salen de lo habitual, el patrón de cada cosa por día del ciclo y
-// la lista de ciclos (tocar uno lo excluye de las previsiones, como el "Hide this cycle"
+// ciclos o las reglas se salen de lo habitual, el patrón de cada cosa por día del ciclo, las
+// fases en general y la lista de ciclos (tocar uno lo excluye de las previsiones, como el "Hide this cycle"
 // de Clue). Conteo simple, sin "insights".
 //
 // Gráficas hechas con Views, sin librería. Una sola serie en el acento cada una (acento y
@@ -15,10 +15,12 @@ import { useCiclo, useFormato, useHistorial } from '@/hooks';
 import { CICLO_CORTO, CICLO_LARGO, REGLA_LARGA } from '@/lib/catalogo';
 import { diasEntre } from '@/lib/fechas';
 import { duracion, type Barra, type Ciclo, type Patron } from '@/lib/motor';
-import { excluir, sospechosoVisto } from '@/store/app';
+import { excluir, sospechosoVisto, useApp } from '@/store/app';
 import { BORDE, espacio, RADIO, useColores, useEstilos, type Paleta } from '@/theme';
 
 const FILAS_PATRON = 8;
+/** Texto general, igual para todas: ni días ni "hoy estás en…" (ver `his.fases` en i18n). */
+const FASES = ['regla', 'folicular', 'ovulacion', 'lutea'] as const;
 /** Alto de la fila de la marca bajo las columnas. */
 const MARCA = 16;
 /** Hueco sobre la columna más alta para su etiqueta. */
@@ -34,6 +36,7 @@ export default function Historial() {
   const { ciclos, sospechosos, prevision, hoy } = useCiclo();
   const { cifras, barras, patrones } = useHistorial();
   const [elegida, setElegida] = useState<string | null>(null);
+  const hormonal = useApp((x) => x.ajustes.hormonal);
 
   const largo = (x: Ciclo) => x.dias ?? diasEntre(x.inicio, hoy) + 1;
   const escala = Math.max(28, ...ciclos.map(largo));
@@ -129,6 +132,23 @@ export default function Historial() {
           <Ayuda>{t('his.patronAyuda')}</Ayuda>
         </Seccion>
       )}
+
+      <Seccion titulo={t('his.fases')} icono="rotate-cw">
+        <Ayuda>{t('his.fasesAyuda')}</Ayuda>
+        {!hormonal && (
+          <>
+            {FASES.map((f) => (
+              <View key={f} style={s.fase}>
+                <Texto estilo="cuerpo">{t(`fase.${f}`)}</Texto>
+                <Texto estilo="apoyo" tono="texto2">
+                  {t(`fase.${f}Texto`)}
+                </Texto>
+              </View>
+            ))}
+            <Ayuda>{t('his.fasesPie')}</Ayuda>
+          </>
+        )}
+      </Seccion>
 
       {ciclos.length > 0 && (
         <Seccion titulo={t('his.ciclos')} icono="list">
@@ -304,6 +324,7 @@ const estilos = (c: Paleta) =>
   StyleSheet.create({
     cifras: { flexDirection: 'row', flexWrap: 'wrap', rowGap: espacio.lg },
     cifra: { width: '50%', gap: espacio.xs },
+    fase: { gap: espacio.xs },
     lectura: { flexDirection: 'row', gap: espacio.sm, alignItems: 'flex-start', marginTop: espacio.sm },
     ciclo: { borderBottomWidth: BORDE, borderBottomColor: c.linea, paddingBottom: espacio.sm, gap: espacio.sm },
     fila: { paddingVertical: espacio.sm, minHeight: 48 },

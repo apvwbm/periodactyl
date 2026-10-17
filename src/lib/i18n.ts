@@ -135,6 +135,29 @@ const es = {
   'his.menos': 'Menos',
   'his.mas': 'Más',
 
+  // Fases: texto general, sin días ni "hoy estás en…" (sería un indicador fértil de hoy).
+  // Fuentes: la lútea es la constante y la folicular la que varía (Fehring 2006, Bull
+  // 2019); más ganas cerca de la ovulación y menos en la lútea (Roney y Simmons 2013);
+  // síntomas premenstruales (NICE CKS PMS); ejercicio y dolor (Cochrane, Armour 2019); el
+  // rendimiento apenas cambia entre fases (McNulty 2020).
+  'his.fases': 'Fases del ciclo',
+  'his.fasesAyuda': 'Lo habitual, en general. Cada cuerpo va a su manera: compáralo con lo que tú apuntas.',
+  'his.fasesAyudaH':
+    'Con anticoncepción hormonal estas fases no van igual: la mayoría de métodos frenan o cambian la ovulación, y con píldora, parche o anillo el sangrado de la semana de descanso no es una regla. Lo que tú apuntas cada día dice más que cualquier fase.',
+  'his.fasesPie': 'No hay pruebas sólidas de que haya que comer o entrenar distinto en cada fase: guíate por cómo te encuentres.',
+  'fase.regla': 'Regla',
+  'fase.reglaTexto':
+    'Las hormonas están en lo más bajo y el útero suelta su capa interna. Son comunes los calambres, el cansancio y el intestino más suelto. Moverse con suavidad puede aliviar el dolor.',
+  'fase.folicular': 'Fase folicular',
+  'fase.folicularTexto':
+    'Desde que acaba la regla hasta la ovulación. Sube el estrógeno y mucha gente nota más energía y mejor ánimo. Es la fase que más cambia de duración: por eso unos ciclos son más largos que otros.',
+  'fase.ovulacion': 'Ovulación',
+  'fase.ovulacionTexto':
+    'Un ovario suelta un óvulo, unas dos semanas antes de la siguiente regla (no siempre a mitad del ciclo). Por estos días suelen subir las ganas de sexo, y hay quien nota un pinchazo leve a un lado del vientre.',
+  'fase.lutea': 'Fase lútea',
+  'fase.luteaTexto':
+    'Las casi dos semanas antes de la regla, más constantes de un ciclo a otro. Sube la progesterona y las ganas suelen bajar. Los últimos días es común notar el pecho sensible, hinchazón, antojos, granos o cambios de ánimo; si te afectan mucho, coméntalo con un médico.',
+
   // Día
   'dia.flujo': 'Flujo',
   'dia.abundante': 'Coágulos grandes o empapa cada 1–2 horas',
@@ -398,6 +421,23 @@ const en: Diccionario = {
   'his.dia': 'Day {n}',
   'his.menos': 'Less',
   'his.mas': 'More',
+
+  'his.fases': 'Cycle phases',
+  'his.fasesAyuda': "What's typical, in general. Every body runs its own way: compare it with what you log.",
+  'his.fasesAyudaH':
+    "On hormonal contraception these phases work differently: most methods stop or change ovulation, and on the pill, patch or ring the bleed in the break week isn't a period. What you log each day says more than any phase.",
+  'his.fasesPie': "There's no solid evidence that you need to eat or train differently in each phase: go by how you feel.",
+  'fase.regla': 'Period',
+  'fase.reglaTexto': 'Hormones are at their lowest and the uterus sheds its lining. Cramps, tiredness and looser stools are common. Gentle movement may ease the pain.',
+  'fase.folicular': 'Follicular phase',
+  'fase.folicularTexto':
+    "From the end of your period to ovulation. Estrogen rises and many people feel more energetic and in a better mood. It's the phase that varies most in length, which is why some cycles are longer than others.",
+  'fase.ovulacion': 'Ovulation',
+  'fase.ovulacionTexto':
+    'An ovary releases an egg, about two weeks before the next period (not always mid-cycle). Sex drive often rises around these days, and some people feel a mild twinge on one side of the belly.',
+  'fase.lutea': 'Luteal phase',
+  'fase.luteaTexto':
+    'The roughly two weeks before your period, steadier from one cycle to the next. Progesterone rises and sex drive often dips. In the last few days, tender breasts, bloating, cravings, spots or mood changes are common; if they affect you a lot, mention it to a doctor.',
 
   'dia.flujo': 'Flow',
   'dia.abundante': 'Large clots or soaking through every 1–2 hours',

@@ -30,7 +30,8 @@
 - **How you feel each day**: flow, pain, mood, symptoms and cravings, exercise, sex and
   desire, and a note if you want one.
 - **History**: typical cycle, how regular it is, charts of your cycle and period lengths,
-  and on which day of your cycle each thing tends to show up.
+  on which day of your cycle each thing tends to show up, and a short guide to the cycle
+  phases.
 - **A report for your doctor** by cycle day, plus notes worth mentioning to one.
 - **A discreet reminder** a couple of days before, scheduled on the phone.
 - Estimated ovulation and fertile days, **only if you ask for them**.
