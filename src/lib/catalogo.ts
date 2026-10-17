@@ -31,6 +31,13 @@ export const MARGEN_MAX = 4;
 // ponytail: con menos de 3 ciclos no hay variación medida; ±2 es el punto medio del
 // rango. Si hay datos de población mejores (Bull 2019 da la variación por edad), usarlos.
 export const MARGEN_ESTIMADO = 2;
+/**
+ * Con anticoncepción hormonal, ±1 mientras no haya 3 ciclos: con píldora, parche o anillo
+ * el sangrado llega en la semana de descanso, cada 28 días (NHS combined pill,
+ * https://www.nhs.uk/contraception/methods-of-contraception/combined-pill/). Con 3
+ * ciclos manda su variación real, como en todas.
+ */
+export const MARGEN_HORMONAL = 1;
 
 /** Huecos de hasta 2 días sin flujo (o solo manchado) siguen siendo la misma regla. */
 export const HUECO_REGLA = 2;

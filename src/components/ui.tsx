@@ -85,13 +85,27 @@ export function Pantalla({
   );
 }
 
-export function Seccion({ titulo, derecha, children, style }: { titulo?: string; derecha?: ReactNode; children: ReactNode; style?: ViewStyle }) {
+export function Seccion({
+  titulo,
+  icono,
+  derecha,
+  children,
+  style,
+}: {
+  titulo?: string;
+  /** Un icono Feather pequeño delante del título, en el gris del título. */
+  icono?: string;
+  derecha?: ReactNode;
+  children: ReactNode;
+  style?: ViewStyle;
+}) {
   const c = useColores();
   const s = useEstilos(estilos);
   return (
     <View style={[s.seccion, style]}>
       {(titulo || derecha) && (
         <View style={s.seccionCabecera}>
+          {icono && <Icono nombre={icono} tam={14} tinte={c.texto2} />}
           <Text style={[typo.seccion, { color: c.texto2, flex: 1 }]} accessibilityRole="header">
             {titulo}
           </Text>
@@ -572,7 +586,7 @@ const estilos = (c: Paleta) =>
     contenido: { paddingHorizontal: espacio.pantalla, paddingBottom: espacio.xxl * 3, gap: espacio.xl },
     pie: { paddingHorizontal: espacio.pantalla, paddingVertical: espacio.md, borderTopWidth: BORDE, borderTopColor: c.linea, backgroundColor: c.fondo },
     seccion: { gap: espacio.sm },
-    seccionCabecera: { flexDirection: 'row', alignItems: 'center', minHeight: 24 },
+    seccionCabecera: { flexDirection: 'row', alignItems: 'center', gap: espacio.sm, minHeight: 24 },
     boton: {
       minHeight: TACTIL,
       borderRadius: RADIO,

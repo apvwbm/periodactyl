@@ -27,9 +27,10 @@
 - **One tap** when your period starts, another when it ends.
 - **Next period as a range of dates**, from the median of your last cycles. Late? It stops
   counting down and tells you what to do.
-- **How you feel each day**: flow, pain, a short list of symptoms and a note.
-- **History**: typical cycle, shortest and longest, how regular it is, and your most
-  frequent symptoms.
+- **How you feel each day**: flow, pain, mood, symptoms and cravings, exercise, sex and
+  desire, and a note if you want one.
+- **History**: typical cycle, how regular it is, charts of your cycle and period lengths,
+  and on which day of your cycle each thing tends to show up.
 - **A report for your doctor** by cycle day, plus notes worth mentioning to one.
 - **A discreet reminder** a couple of days before, scheduled on the phone.
 - Estimated ovulation and fertile days, **only if you ask for them**.

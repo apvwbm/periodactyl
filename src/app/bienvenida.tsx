@@ -1,6 +1,9 @@
 // Bienvenida: el aviso y seis preguntas cortas. Lo opcional se puede saltar y todo se
 // puede cambiar luego en Ajustes.
 //
+// La anticoncepción va antes que las fechas: con ella las preguntas hablan de
+// "sangrado" y explican que con 21 + 7 el ciclo son 28 días (no pastillas + regla).
+//
 // Empieza en inglés (nada de detectar el idioma del móvil) y va con su propio idioma en
 // estado local, para que elegir "Español" en el primer paso traduzca el resto al momento.
 
@@ -14,16 +17,16 @@ import { Ayuda, Boton, Nota, Pantalla, Pasos, Segmentado, SelectorFecha, Texto }
 import { REGLA_DEFECTO, CICLO_DEFECTO } from '@/lib/catalogo';
 import { AJUSTES_DEFECTO } from '@/lib/esquema';
 import { hoyISO } from '@/lib/fechas';
-import { IDIOMAS, traducir, type Clave } from '@/lib/i18n';
+import { IDIOMAS, traducir, variante, type Clave } from '@/lib/i18n';
 import { autenticar, completarBienvenida } from '@/store/app';
 import { espacio, useColores, useEstilos, type Paleta } from '@/theme';
 import type { Idioma } from '@/types';
 
 const AVISO = 0;
-const ULTIMA = 1;
-const DURACIONES = 2;
-const HORMONAL = 3;
-const FERTILIDAD = 4;
+const HORMONAL = 1;
+const FERTILIDAD = 2;
+const ULTIMA = 3;
+const DURACIONES = 4;
 const RECORDATORIO = 5;
 const BLOQUEO = 6;
 const TOTAL_PASOS = 7;
@@ -40,16 +43,16 @@ export default function Bienvenida() {
   const [hormonal, setHormonal] = useState(false);
   const [fertilidad, setFertilidad] = useState(false);
   const [recordatorio, setRecordatorio] = useState(false);
-  const t = (k: Clave, v?: Record<string, string | number>) => traducir(idioma, k, v);
+  const t = (k: Clave, v?: Record<string, string | number>) => traducir(idioma, variante(k, hormonal), v);
   const dias = (n: number) => (n === 1 ? t('g.dia') : t('g.dias', { n }));
 
   const siguiente = () => setPaso(paso + 1);
   // Con anticoncepción hormonal no se pregunta por la fertilidad.
-  const anterior = () => setPaso(paso === RECORDATORIO && hormonal ? HORMONAL : paso - 1);
+  const anterior = () => setPaso(paso === ULTIMA && hormonal ? HORMONAL : paso - 1);
 
   const elegirHormonal = (si: boolean) => {
     setHormonal(si);
-    setPaso(si ? RECORDATORIO : FERTILIDAD);
+    setPaso(si ? ULTIMA : FERTILIDAD);
   };
 
   const activarRecordatorio = async () => {

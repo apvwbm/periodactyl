@@ -41,7 +41,7 @@ export default function Hoy() {
           <View style={s.etiqueta}>
             <Icono nombre="info" tam={14} tinte={c.texto2} />
             <Texto estilo="micro" tono="texto2">
-              {t('hoy.estimada')}
+              {t(p.ciclos ? 'hoy.estimadaPocos' : 'hoy.estimada')}
             </Texto>
           </View>
         )}
@@ -73,7 +73,7 @@ export default function Hoy() {
       )}
 
       {medico.length > 0 && (
-        <Seccion titulo={t('hoy.medico')}>
+        <Seccion titulo={t('hoy.medico')} icono="message-circle">
           {medico.map((n) => (
             <Nota key={n} icono="message-circle" texto={t(`nota.${n as Exclude<NotaSalud, 'retraso'>}`)} />
           ))}
@@ -98,12 +98,14 @@ function heroe(e: EstadoHoy, t: (k: Clave, v?: Record<string, number>) => string
   }
 }
 
-/** "Medio · Dolor leve · Cansancio". */
+/** "Medio · Dolor o calambres: leve · Cansancio · Ejercicio: suave". */
 function resumen(d: Dia, t: (k: Clave) => string): string {
   return [
     d.flujo ? t(`flujo.${d.flujo}`) : '',
     d.dolor ? `${t('dia.dolor')}: ${t(`dolor.${d.dolor}`).toLowerCase()}` : '',
     ...d.sintomas.map((x) => t(`sin.${x}`)),
+    d.ejercicio ? `${t('dia.ejercicio')}: ${t(`ejercicio.${d.ejercicio}`).toLowerCase()}` : '',
+    d.deseo !== null ? t(d.deseo ? 'deseo.si' : 'deseo.no') : '',
     d.nota.trim() ? t('dia.nota') : '',
   ]
     .filter(Boolean)

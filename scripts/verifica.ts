@@ -11,7 +11,7 @@ process.env.TZ = 'Europe/Madrid';
 import { DatabaseSync } from 'node:sqlite';
 
 import { informe } from '../src/lib/csv';
-import { AJUSTES_DEFECTO, mezclarAjustes, migrar, TABLAS, VERSION_ESQUEMA } from '../src/lib/esquema';
+import { AJUSTES_DEFECTO, MIGRACIONES, mezclarAjustes, migrar, TABLAS, VERSION_ESQUEMA } from '../src/lib/esquema';
 import { addDias, diasEntre, fechaCorta, hora, instante, rango } from '../src/lib/fechas';
 import { traducir, variante } from '../src/lib/i18n';
 import {
@@ -30,8 +30,9 @@ import {
   proximaVentana,
   reglas,
   rellenoAbierta,
+  patrones,
   separar,
-  sintomasFrecuentes,
+  serie,
   sospechoso,
   vacio,
   verFertilidad,
@@ -61,6 +62,8 @@ const dia = (fecha: string, flujo: Flujo = 0, extra: Partial<Dia> = {}): Dia => 
   abundante: false,
   dolor: 0,
   sintomas: [],
+  ejercicio: 0,
+  deseo: null,
   sexo: null,
   nota: '',
   ...extra,
@@ -140,10 +143,24 @@ bloque('previsión');
   igual('solo cuentan los últimos 6', p?.ciclo, 29);
 }
 {
+  const sin = derivar(regla('2026-01-01'), { cicloDicho: 26, reglaDicha: 4 }).p;
+  igual('sin ciclos usa el valor dicho', [sin?.ciclo, sin?.regla, sin?.ciclos], [26, 4, 0]);
+  ok('…y marca "estimate"', sin?.estimada === true);
+  igual('con 1 ciclo ya manda el suyo', derivar(historial('2026-01-01', [26]), { cicloDicho: 30 }).p?.ciclo, 26);
   const { p } = derivar(historial('2026-01-01', [30, 31]), { cicloDicho: 26, reglaDicha: 4 });
-  igual('con 2 ciclos usa el valor dicho', p?.ciclo, 26);
-  igual('…y la regla dicha', p?.regla, 4);
-  ok('…y marca "estimate"', p?.estimada === true);
+  igual('con 2 ciclos, los suyos y su regla', [p?.ciclo, p?.regla, p?.ciclos], [31, 5, 2]);
+  ok('…sigue siendo "estimate" con ±2', p?.estimada === true && p?.margen === 2);
+  igual('con anticoncepción hormonal, ±1 mientras es estimación', derivar(historial('2026-01-01', [30, 31]), { hormonal: true }).p?.margen, 1);
+  igual('…con 3 ciclos manda su variación', derivar(historial('2026-01-01', [26, 30, 28]), { hormonal: true }).p?.margen, 2);
+}
+{
+  // El caso de May: píldora, última regla el 22-9 de 6 días, y puso 27 (21 pastillas + 6).
+  const may = diasBienvenida('2026-09-22', 6, '2026-10-17');
+  const { rs, p } = derivar(may, { hormonal: true, cicloDicho: 27, reglaDicha: 6 });
+  igual('May: rango ±1 alrededor del 19-10', [p?.desde, p?.hasta], ['2026-10-18', '2026-10-20']);
+  igual('May: el 17-10, en unos 2 días', estadoHoy(rs, p, null, '2026-10-17'), { tipo: 'antes', dias: 2 });
+  const despues = derivar([...may, dia('2026-10-18', 3)], { hormonal: true, cicloDicho: 27, reglaDicha: 6 }).p;
+  igual('May: en cuanto apunta el sangrado del 18-10, manda su ciclo real de 26', [despues?.ciclo, despues?.inicio], [26, '2026-11-13']);
 }
 igual('sin reglas no hay previsión', derivar([]).p, null);
 {
@@ -301,15 +318,24 @@ bloque('historial');
   igual('día del ciclo cruzando el cambio de hora', diaDelCiclo('2026-11-07', [{ inicio: '2026-10-10', fin: '2026-10-14' }]), 29);
   const sintomas = [
     dia('2026-01-02', 3, { sintomas: ['cabeza', 'cansancio'] }),
-    dia('2026-01-04', 3, { sintomas: ['cabeza'] }),
-    dia('2026-01-30', 3, { sintomas: ['cabeza'] }),
+    dia('2026-01-04', 3, { sintomas: ['cabeza'], ejercicio: 2, deseo: false }),
+    dia('2026-01-30', 3, { sintomas: ['cabeza', 'alegria'], deseo: true }),
   ];
-  igual('síntomas más frecuentes y su día típico', sintomasFrecuentes(sintomas, reglas(sintomas)), [
-    { sintoma: 'cabeza', veces: 3, diaTipico: 1 },
-    { sintoma: 'cansancio', veces: 1, diaTipico: 1 },
-  ]);
+  const ps = patrones(sintomas, reglas(sintomas), null, '2026-02-05');
+  const de = (clave: string) => ps.find((x) => x.clave === clave);
+  igual('patrón: más frecuente primero, con su día típico', [ps[0].clave, ps[0].veces, ps[0].diaTipico], ['cabeza', 3, 1]);
+  igual('patrón: 28 días sin previsión', ps[0].frecuencia.length, 28);
+  igual('patrón: día 1 en los dos ciclos, día 3 en uno de dos', [ps[0].frecuencia[0], ps[0].frecuencia[2], ps[0].frecuencia[1]], [1, 0.5, 0]);
+  ok('patrón: ánimo, ejercicio y ganas también', !!de('alegria') && de('ejercicio')?.diaTipico === 3 && de('deseo')?.veces === 1);
+  ok('patrón: lo que no sale no aparece', !de('acne') && !de('dolor'));
+  const { cs: seis } = derivar(dias, {}, ['2026-01-29']);
+  const barras = serie(seis);
+  igual('gráfica: los ciclos terminados, del más antiguo al más reciente', barras.map((b) => b.ciclo), [28, 30, 29, 27, 31, 29]);
+  ok('gráfica: con su regla y lo excluido', barras.every((b) => b.regla === 5) && barras[1].excluido && !barras[0].excluido);
   ok('un día sin nada está vacío', vacio(dia('2026-01-01')));
   ok('un día con nota no', !vacio(dia('2026-01-01', 0, { nota: 'x' })));
+  ok('ni con ejercicio', !vacio(dia('2026-01-01', 0, { ejercicio: 1 })));
+  ok('ni con "sin ganas"', !vacio(dia('2026-01-01', 0, { deseo: false })));
 }
 
 // ── migraciones ──────────────────────────────────────────────────────────────
@@ -344,6 +370,29 @@ bloque('migraciones');
   ok('la base acepta flujo 0–4', insertar(0) && insertar(4));
   ok('la base rechaza flujo 5', !insertar(5));
   ok('la base rechaza dolor 4', !insertar(0, 4));
+  const extra = (ejercicio: number, deseo: number | null) => {
+    try {
+      base.prepare('INSERT INTO dias (fecha, ejercicio, deseo) VALUES (?, ?, ?)').run(`2026-11-${10 + ++filas}`, ejercicio, deseo);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+  ok('la base acepta ejercicio 0–3 y ganas 0, 1 o nada', extra(3, 1) && extra(0, 0) && extra(1, null));
+  ok('la base rechaza ejercicio 4 y ganas 2', !extra(4, null) && !extra(0, 2));
+
+  // De la v1 (la que ya tiene May) a la última: los días se quedan y ganan los campos nuevos.
+  const v1 = new DatabaseSync(':memory:');
+  v1.exec(`BEGIN; ${MIGRACIONES[0]}; PRAGMA user_version = 1; COMMIT;`);
+  v1.exec(`INSERT INTO dias (fecha, flujo, sintomas) VALUES ('2026-09-22', 3, '["animo"]')`);
+  migrar((sql) => v1.exec(sql), 1);
+  igual('migrar desde la v1 conserva los días', v1.prepare('SELECT fecha, flujo, sintomas, ejercicio, deseo FROM dias').get(), {
+    fecha: '2026-09-22',
+    flujo: 3,
+    sintomas: '["animo"]',
+    ejercicio: 0,
+    deseo: null,
+  });
 
   // Una migración que falla no deja nada a medias.
   const otra = new DatabaseSync(':memory:');
@@ -371,22 +420,27 @@ igual('sin variante, la normal', variante('hoy.medico', true), 'hoy.medico');
 {
   // Ninguna palabra de la lista prohibida (PLAN.md §11) fuera de las negaciones del aviso.
   const prohibidas = /birth control|natural family|avoid pregnancy|safe days|can't get pregnant|get pregnant|trying to conceive|boost your chances|plan a pregnancy|fertile today|detect|diagnos|accurate|clinically|recommended|might be pregnant/i;
-  const textos = (['en', 'es'] as const).flatMap((i) => (['hoy.ventana', 'hoy.ventanaAyuda', 'ob.fertilidadAyuda', 'cal.fertil', 'hoy.guiaRetraso', 'nota.sinRegla'] as const).map((k) => traducir(i, k)));
+  const textos = (['en', 'es'] as const).flatMap((i) => (['hoy.ventana', 'hoy.ventanaAyuda', 'ob.fertilidadAyuda', 'ob.duracionesAyudaH', 'cal.fertil', 'hoy.guiaRetraso', 'nota.sinRegla', 'deseo.si'] as const).map((k) => traducir(i, k)));
   ok('sin palabras prohibidas', textos.every((t) => !prohibidas.test(t)));
 }
 {
-  const dias = [dia('2026-01-01', 3), dia('2026-01-02', 3, { abundante: true, dolor: 3, sintomas: ['cabeza', 'animo'], nota: 'Dolor, "fuerte"' }), dia('2026-01-10', 0, { sexo: 'protegido' })];
+  const dias = [
+    dia('2026-01-01', 3),
+    dia('2026-01-02', 3, { abundante: true, dolor: 3, sintomas: ['cabeza', 'antojos', 'animo'], ejercicio: 1, nota: 'Dolor, "fuerte"' }),
+    dia('2026-01-10', 0, { sexo: 'protegido', deseo: true }),
+  ];
   const filas = informe(dias, reglas(dias), {
-    cabecera: ['fecha', 'dia_ciclo', 'flujo', 'coagulos', 'dolor', 'sintomas', 'nota'],
+    cabecera: traducir('es', 'aj.informeCabecera').split(','),
     flujo: (f) => traducir('es', `flujo.${f}`),
     dolor: (d) => traducir('es', `dolor.${d}`),
     sintoma: (s) => traducir('es', `sin.${s}`),
+    ejercicio: (e) => traducir('es', `ejercicio.${e}`),
     si: 'sí',
   }).split('\n');
-  igual('informe: cabecera', filas[0], 'fecha,dia_ciclo,flujo,coagulos,dolor,sintomas,nota');
-  igual('informe: día sencillo', filas[1], '2026-01-01,1,Medio,,,,');
-  igual('informe: día con todo y comillas escapadas', filas[2], '2026-01-02,2,Medio,sí,Fuerte,Dolor de cabeza; Ánimo bajo,"Dolor, ""fuerte"""');
-  igual('informe: el sexo no sale', filas.length, 3);
+  igual('informe: cabecera', filas[0], 'fecha,día del ciclo,flujo,coágulos grandes,dolor,síntomas,ánimo,ejercicio,nota');
+  igual('informe: día sencillo', filas[1], '2026-01-01,1,Medio,,,,,,');
+  igual('informe: síntomas y ánimo aparte, y comillas escapadas', filas[2], '2026-01-02,2,Medio,sí,Fuerte,Dolor de cabeza; Antojos,Ánimo bajo,Suave,"Dolor, ""fuerte"""');
+  igual('informe: ni el sexo ni las ganas salen', filas.length, 3);
 }
 
 console.log(fallos ? `\n${fallos} de ${total} asserts FALLAN` : `\n${total} asserts OK`);

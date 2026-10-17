@@ -1,9 +1,9 @@
 // Informe para el médico: un CSV por día de ciclo. Puro y sin Expo, para poder
 // verificarlo en Node. En consulta lo que más ayuda es flujo, duración, sangrados entre
-// reglas, dolor y ánimo por día de ciclo; el sexo no va (no aporta y es privado).
+// reglas, dolor y ánimo por día de ciclo; el sexo y las ganas no van (son privados).
 
 import { diaDelCiclo, type Regla } from './motor';
-import type { Dia, Dolor, Flujo, Sintoma } from '@/types';
+import { esAnimo, type Dia, type Dolor, type Ejercicio, type Flujo, type Sintoma } from '../types';
 
 const celda = (v: string | number) => {
   const s = String(v);
@@ -15,12 +15,14 @@ export type Etiquetas = {
   flujo: (f: Flujo) => string;
   dolor: (d: Dolor) => string;
   sintoma: (s: Sintoma) => string;
+  ejercicio: (e: Ejercicio) => string;
   si: string;
 };
 
 export function informe(dias: Dia[], rs: Regla[], e: Etiquetas): string {
+  const lista = (d: Dia, animo: boolean) => d.sintomas.filter((s) => esAnimo(s) === animo).map(e.sintoma).join('; ');
   const filas = [...dias]
-    .filter((d) => d.flujo || d.abundante || d.dolor || d.sintomas.length || d.nota.trim())
+    .filter((d) => d.flujo || d.abundante || d.dolor || d.sintomas.length || d.ejercicio || d.nota.trim())
     .sort((a, b) => (a.fecha < b.fecha ? -1 : 1))
     .map((d) =>
       [
@@ -29,7 +31,9 @@ export function informe(dias: Dia[], rs: Regla[], e: Etiquetas): string {
         d.flujo ? e.flujo(d.flujo) : '',
         d.abundante ? e.si : '',
         d.dolor ? e.dolor(d.dolor) : '',
-        d.sintomas.map(e.sintoma).join('; '),
+        lista(d, false),
+        lista(d, true),
+        d.ejercicio ? e.ejercicio(d.ejercicio) : '',
         d.nota.trim(),
       ]
         .map(celda)

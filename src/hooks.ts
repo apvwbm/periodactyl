@@ -14,10 +14,11 @@ import {
   futuras,
   marcas,
   notasSalud,
+  patrones,
   prever,
   proximaVentana,
   separar,
-  sintomasFrecuentes,
+  serie,
   sospechoso,
   verFertilidad,
 } from '@/lib/motor';
@@ -79,6 +80,9 @@ export function useMarcas() {
 
 export function useHistorial() {
   const dias = useApp((s) => s.dias);
-  const { reglas, ciclos: cs } = useCiclo();
-  return useMemo(() => ({ cifras: estadisticas(cs), sintomas: sintomasFrecuentes(dias, reglas) }), [dias, reglas, cs]);
+  const { reglas, ciclos: cs, prevision, hoy } = useCiclo();
+  return useMemo(
+    () => ({ cifras: estadisticas(cs), barras: serie(cs), patrones: patrones(dias, reglas, prevision, hoy) }),
+    [dias, reglas, cs, prevision, hoy],
+  );
 }

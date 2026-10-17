@@ -59,7 +59,17 @@ export type Todo = {
   sospechososVistos: string[];
 };
 
-type FilaDia = { fecha: string; flujo: number; abundante: number; dolor: number; sintomas: string; sexo: string | null; nota: string };
+type FilaDia = {
+  fecha: string;
+  flujo: number;
+  abundante: number;
+  dolor: number;
+  sintomas: string;
+  ejercicio: number;
+  deseo: number | null;
+  sexo: string | null;
+  nota: string;
+};
 
 function kv<T>(clave: string, defecto: T): T {
   const fila = db.getFirstSync<{ valor: string }>('SELECT valor FROM kv WHERE clave = ?', clave);
@@ -74,6 +84,8 @@ export function cargar(): Todo {
       dolor: f.dolor as Dia['dolor'],
       abundante: f.abundante === 1,
       sintomas: JSON.parse(f.sintomas) as Dia['sintomas'],
+      ejercicio: f.ejercicio as Dia['ejercicio'],
+      deseo: f.deseo === null ? null : f.deseo === 1,
       sexo: f.sexo as Dia['sexo'],
     })),
     ajustes: mezclarAjustes(kv<Partial<Ajustes>>('ajustes', {})),
@@ -89,10 +101,10 @@ export const transaccion = (fn: () => void) => db.withTransactionSync(fn);
 
 export const guardarDia = (d: Dia) =>
   db.runSync(
-    `INSERT INTO dias (fecha, flujo, abundante, dolor, sintomas, sexo, nota) VALUES (?, ?, ?, ?, ?, ?, ?)
+    `INSERT INTO dias (fecha, flujo, abundante, dolor, sintomas, ejercicio, deseo, sexo, nota) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
      ON CONFLICT (fecha) DO UPDATE SET flujo = excluded.flujo, abundante = excluded.abundante, dolor = excluded.dolor,
-       sintomas = excluded.sintomas, sexo = excluded.sexo, nota = excluded.nota`,
-    [d.fecha, d.flujo, Number(d.abundante), d.dolor, JSON.stringify(d.sintomas), d.sexo, d.nota],
+       sintomas = excluded.sintomas, ejercicio = excluded.ejercicio, deseo = excluded.deseo, sexo = excluded.sexo, nota = excluded.nota`,
+    [d.fecha, d.flujo, Number(d.abundante), d.dolor, JSON.stringify(d.sintomas), d.ejercicio, d.deseo === null ? null : Number(d.deseo), d.sexo, d.nota],
   );
 
 export const borrarDia = (fecha: string) => db.runSync('DELETE FROM dias WHERE fecha = ?', fecha);

@@ -57,6 +57,7 @@ export default function Ajustes() {
               flujo: (f) => t(`flujo.${f}`),
               dolor: (d) => t(`dolor.${d}`),
               sintoma: (x) => t(`sin.${x}`),
+              ejercicio: (e) => t(`ejercicio.${e}`),
               si: t('g.si'),
             }),
           ),
@@ -91,7 +92,7 @@ export default function Ajustes() {
     <Pantalla titulo={t('aj.titulo')} atras>
       <Segmentado etiqueta={t('aj.idioma')} opciones={IDIOMAS.map((i) => ({ valor: i.codigo, texto: i.nombre }))} valor={a.idioma} onCambio={(idioma) => cambiarAjustes({ idioma })} />
 
-      <Seccion titulo={t('aj.ciclo')}>
+      <Seccion titulo={t('aj.ciclo')} icono="refresh-cw">
         <Interruptor titulo={t('aj.hormonal')} ayuda={t('aj.hormonalAyuda')} valor={a.hormonal} onCambio={(hormonal) => cambiarAjustes({ hormonal })} />
         <Interruptor
           titulo={t('aj.fertilidad')}
@@ -100,7 +101,8 @@ export default function Ajustes() {
           onCambio={(fertilidad) => cambiarAjustes({ fertilidad })}
           deshabilitado={a.hormonal}
         />
-        {(!prevision || prevision.estimada) && (
+        {/* Lo que dijo solo cuenta mientras no hay ningún ciclo real. */}
+        {(!prevision || prevision.ciclos === 0) && (
           <>
             <Pasos
               etiqueta={t('aj.cicloDicho')}
@@ -119,7 +121,7 @@ export default function Ajustes() {
         )}
       </Seccion>
 
-      <Seccion titulo={t('aj.recordatorio')}>
+      <Seccion titulo={t('aj.recordatorio')} icono="bell">
         <Interruptor titulo={t('aj.recordatorioActivo')} valor={r.activo} onCambio={(si) => void activarRecordatorio(si)} />
         {r.activo && (
           <>
@@ -147,11 +149,11 @@ export default function Ajustes() {
         )}
       </Seccion>
 
-      <Seccion titulo={t('aj.seguridad')}>
+      <Seccion titulo={t('aj.seguridad')} icono="lock">
         <Interruptor titulo={t('aj.bloqueo')} ayuda={t('aj.bloqueoAyuda')} valor={a.bloqueo} onCambio={(si) => void cambiarBloqueo(si)} />
       </Seccion>
 
-      <Seccion titulo={t('aj.datos')}>
+      <Seccion titulo={t('aj.datos')} icono="database">
         <Fila titulo={t('aj.informe')} subtitulo={t('aj.informeAyuda')} icono="file-text" onPress={exportar} chevron />
         <Fila titulo={t('aj.exportar')} icono="lock" onPress={() => router.push({ pathname: '/copia', params: { modo: 'exportar' } })} chevron />
         <Fila titulo={t('aj.importar')} icono="download" onPress={() => router.push({ pathname: '/copia', params: { modo: 'importar' } })} chevron />
@@ -159,7 +161,7 @@ export default function Ajustes() {
         <Fila titulo={t('aj.borrar')} icono="trash-2" tinteIcono={c.acento} onPress={borrar} />
       </Seccion>
 
-      <Seccion titulo={t('aj.acerca')}>
+      <Seccion titulo={t('aj.acerca')} icono="info">
         <Texto estilo="cuerpo">PERIODactyl</Texto>
         <Ayuda>{t('aj.version', { v: Constants.expoConfig?.version ?? '' })}</Ayuda>
         <Texto estilo="apoyo" tono="texto2">

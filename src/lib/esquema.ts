@@ -26,6 +26,11 @@ export const MIGRACIONES: string[] = [
     nota TEXT NOT NULL DEFAULT ''
   );
   `,
+  // 2 — ejercicio y ganas de sexo (el ánimo y los antojos van en `sintomas`)
+  `
+  ALTER TABLE dias ADD COLUMN ejercicio INTEGER NOT NULL DEFAULT 0 CHECK (ejercicio BETWEEN 0 AND 3);
+  ALTER TABLE dias ADD COLUMN deseo INTEGER CHECK (deseo IN (0, 1));
+  `,
 ];
 
 export const VERSION_ESQUEMA = MIGRACIONES.length;

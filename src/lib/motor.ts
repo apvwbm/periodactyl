@@ -18,6 +18,7 @@ import {
   FASE_LUTEA,
   HUECO_REGLA,
   MARGEN_ESTIMADO,
+  MARGEN_HORMONAL,
   MARGEN_MAX,
   MARGEN_MIN,
   MARGEN_SOSPECHOSO,
@@ -28,7 +29,7 @@ import {
   VENTANA_FERTIL,
 } from './catalogo';
 import { addDias, diasEntre } from './fechas';
-import type { Ajustes, Dia, Flujo, Sintoma } from '@/types';
+import { ANIMOS, SINTOMAS, type Ajustes, type Dia, type Flujo, type Sintoma } from '../types';
 
 export type Regla = { inicio: string; fin: string };
 
@@ -109,8 +110,10 @@ const recientes = (cs: Ciclo[]) => cs.filter((c) => c.valido).slice(-CICLOS_PRED
 // ── Previsión ────────────────────────────────────────────────────────────────
 
 export type Prevision = {
-  /** Menos de 3 ciclos: usa lo que dijo el usuario. */
+  /** Menos de 3 ciclos reales: se dice "estimate" y el rango es fijo. */
   estimada: boolean;
+  /** Ciclos reales que usa (0 = lo que dijo el usuario). */
+  ciclos: number;
   ciclo: number;
   regla: number;
   margen: number;
@@ -122,21 +125,28 @@ export type Prevision = {
   hasta: string;
 };
 
-export function prever(rs: Regla[], cs: Ciclo[], a: Pick<Ajustes, 'cicloDicho' | 'reglaDicha'>): Prevision | null {
+/**
+ * Con un solo ciclo real ya manda el suyo: lo que dijo el usuario solo vale mientras no
+ * hay ninguno (en la bienvenida es fácil equivocarse, p. ej. sumar pastillas y regla).
+ */
+export function prever(rs: Regla[], cs: Ciclo[], a: Pick<Ajustes, 'cicloDicho' | 'reglaDicha' | 'hormonal'>): Prevision | null {
   if (!rs.length) return null;
   const validos = recientes(cs);
   const estimada = validos.length < CICLOS_MINIMOS;
   const largos = validos.map((c) => c.dias!);
-  const ciclo = estimada ? a.cicloDicho : mediana(largos);
+  const ciclo = largos.length ? mediana(largos) : a.cicloDicho;
   const margen = estimada
-    ? MARGEN_ESTIMADO
+    ? a.hormonal
+      ? MARGEN_HORMONAL
+      : MARGEN_ESTIMADO
     : Math.min(MARGEN_MAX, Math.max(MARGEN_MIN, Math.round((Math.max(...largos) - Math.min(...largos)) / 2)));
   const base = rs[rs.length - 1].inicio;
   const inicio = addDias(base, ciclo);
   return {
     estimada,
+    ciclos: largos.length,
     ciclo,
-    regla: estimada ? a.reglaDicha : mediana(validos.map((c) => duracion(c.regla))),
+    regla: largos.length ? mediana(validos.map((c) => duracion(c.regla))) : a.reglaDicha,
     margen,
     base,
     inicio,
@@ -229,7 +239,7 @@ export type Marca = {
   prevista?: number;
   fertil?: boolean;
   ovulacion?: boolean;
-  /** Síntomas, nota, dolor, manchado o sangrado fuera de regla. */
+  /** Cualquier otra cosa apuntada: síntomas, ánimo, nota, dolor, ejercicio, sexo, manchado… */
   datos?: boolean;
 };
 
@@ -250,7 +260,7 @@ export function marcas(dias: Dia[], rs: Regla[], fs: Futura[], hoy: string): Map
   for (const r of rs) rango(r.inicio, r.fin, { regla: true });
   for (const d of dias) {
     const dentroDeRegla = m.get(d.fecha)?.regla;
-    if (d.sintomas.length || d.nota || d.dolor || d.sexo || (d.flujo && !dentroDeRegla)) marcar(d.fecha, { datos: true });
+    if (!vacio({ ...d, flujo: dentroDeRegla ? 0 : d.flujo, abundante: false })) marcar(d.fecha, { datos: true });
   }
   // Un día de regla real no es previsión, ni ventana fértil del ciclo que acaba de empezar.
   for (const [f, x] of m) if (x.regla) m.set(f, { regla: true, datos: x.datos });
@@ -350,28 +360,78 @@ export function diaDelCiclo(fecha: string, rs: Regla[]): number | null {
   return r ? diasEntre(r.inicio, fecha) + 1 : null;
 }
 
-export type Frecuencia = { sintoma: Sintoma; veces: number; diaTipico: number | null };
+// ── Gráficas de Historial ────────────────────────────────────────────────────
 
-/** Cuántas veces sale cada síntoma y en qué día del ciclo suele salir. Conteo simple. */
-export function sintomasFrecuentes(dias: Dia[], rs: Regla[]): Frecuencia[] {
-  const por = new Map<Sintoma, number[]>();
-  const veces = new Map<Sintoma, number>();
-  for (const d of dias) {
-    const dia = diaDelCiclo(d.fecha, rs);
-    for (const s of d.sintomas) {
-      veces.set(s, (veces.get(s) ?? 0) + 1);
-      if (dia !== null) por.set(s, [...(por.get(s) ?? []), dia]);
-    }
-  }
-  return [...veces]
-    .map(([sintoma, n]) => ({ sintoma, veces: n, diaTipico: por.has(sintoma) ? mediana(por.get(sintoma)!) : null }))
+const CICLOS_GRAFICA = 12;
+/** Días que enseña el patrón por día del ciclo: el ciclo típico, entre 28 y 35. */
+const PATRON_MIN = 28;
+const PATRON_MAX = 35;
+
+export type Barra = { inicio: string; ciclo: number; regla: number; excluido: boolean };
+
+/** Los últimos 12 ciclos terminados, del más antiguo al más reciente. */
+export const serie = (cs: Ciclo[]): Barra[] =>
+  cs
+    .filter((c) => c.dias !== null)
+    .slice(-CICLOS_GRAFICA)
+    .map((c) => ({ inicio: c.inicio, ciclo: c.dias!, regla: duracion(c.regla), excluido: c.excluido }));
+
+export type Elemento = Sintoma | 'dolor' | 'ejercicio' | 'deseo';
+export type Patron = {
+  clave: Elemento;
+  veces: number;
+  diaTipico: number | null;
+  /** Por día del ciclo (índice 0 = día 1): fracción de los ciclos apuntados en que salió. */
+  frecuencia: number[];
+};
+
+const ELEMENTOS: Elemento[] = ['dolor', ...SINTOMAS, ...ANIMOS, 'ejercicio', 'deseo'];
+const tiene = (d: Dia, e: Elemento) =>
+  e === 'dolor' ? d.dolor > 0 : e === 'ejercicio' ? d.ejercicio > 0 : e === 'deseo' ? d.deseo === true : d.sintomas.includes(e);
+
+/**
+ * En qué día del ciclo sale cada cosa: cuántas veces, el día típico (mediana) y, para
+ * cada día, en qué fracción de los ciclos que llegaron a ese día salió. Conteo simple,
+ * sin "insights". Ordenado de más a menos frecuente.
+ */
+export function patrones(dias: Dia[], rs: Regla[], p: Prevision | null, hoy: string): Patron[] {
+  const largo = Math.min(PATRON_MAX, Math.max(PATRON_MIN, p?.ciclo ?? PATRON_MIN));
+  const cobertura = Array<number>(largo).fill(0);
+  rs.forEach((r, i) => {
+    const n = i + 1 < rs.length ? diasEntre(r.inicio, rs[i + 1].inicio) : diasEntre(r.inicio, hoy) + 1;
+    for (let d = 0; d < Math.min(n, largo); d++) cobertura[d]++;
+  });
+  return ELEMENTOS.map((clave) => {
+    const cuando = dias.filter((d) => tiene(d, clave)).map((d) => diaDelCiclo(d.fecha, rs));
+    const conDia = cuando.filter((n): n is number => n !== null);
+    const cuenta = Array<number>(largo).fill(0);
+    for (const n of conDia) if (n <= largo) cuenta[n - 1]++;
+    return {
+      clave,
+      veces: cuando.length,
+      diaTipico: conDia.length ? mediana(conDia) : null,
+      frecuencia: cuenta.map((x, i) => (cobertura[i] ? x / cobertura[i] : 0)),
+    };
+  })
+    .filter((x) => x.veces > 0)
     .sort((a, b) => b.veces - a.veces);
 }
 
 /** Un día sin nada no se guarda. */
-export const vacio = (d: Dia) => !d.flujo && !d.abundante && !d.dolor && !d.sintomas.length && !d.sexo && !d.nota.trim();
+export const vacio = (d: Dia) =>
+  !d.flujo && !d.abundante && !d.dolor && !d.sintomas.length && !d.ejercicio && d.deseo === null && !d.sexo && !d.nota.trim();
 
-export const diaVacio = (fecha: string): Dia => ({ fecha, flujo: 0, abundante: false, dolor: 0, sintomas: [], sexo: null, nota: '' });
+export const diaVacio = (fecha: string): Dia => ({
+  fecha,
+  flujo: 0,
+  abundante: false,
+  dolor: 0,
+  sintomas: [],
+  ejercicio: 0,
+  deseo: null,
+  sexo: null,
+  nota: '',
+});
 
 /** La "última regla" de la bienvenida: flujo medio desde esa fecha durante `reglaDicha` días. */
 export const diasBienvenida = (inicio: string, regla: number, hoy: string): Dia[] =>
