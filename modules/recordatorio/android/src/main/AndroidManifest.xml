@@ -1,0 +1,18 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+  <!-- Los dos únicos permisos que añade el recordatorio. Sin SCHEDULE_EXACT_ALARM ni
+       USE_EXACT_ALARM: la alarma es inexacta a propósito (PLAN.md §8). -->
+  <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+  <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
+  <application>
+    <receiver android:name=".ReceptorAlarma" android:exported="false" />
+    <!-- Exportado para recibir los avisos del sistema; los dos son protegidos (solo los
+         manda Android) y lo peor que puede hacer otra app es volver a armar las alarmas. -->
+    <receiver android:name=".ReceptorArranque" android:exported="true">
+      <intent-filter>
+        <action android:name="android.intent.action.BOOT_COMPLETED" />
+        <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+      </intent-filter>
+    </receiver>
+  </application>
+</manifest>

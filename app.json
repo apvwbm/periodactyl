@@ -1,0 +1,56 @@
+{
+  "expo": {
+    "name": "PERIODactyl",
+    "slug": "periodactyl",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "periodactyl",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.aitorperez.periodactyl"
+    },
+    "android": {
+      "package": "com.aitorperez.periodactyl",
+      "allowBackup": false,
+      "blockedPermissions": [
+        "android.permission.INTERNET",
+        "android.permission.SYSTEM_ALERT_WINDOW",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE"
+      ],
+      "softwareKeyboardLayoutMode": "resize",
+      "predictiveBackGestureEnabled": false,
+      "adaptiveIcon": {
+        "backgroundColor": "#A3245A",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      }
+    },
+    "plugins": [
+      "expo-router",
+      "expo-font",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#FFFFFF",
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 140,
+          "dark": {
+            "backgroundColor": "#111012",
+            "image": "./assets/splash-icon-dark.png"
+          }
+        }
+      ],
+      "expo-sharing",
+      ["expo-sqlite", { "useSQLCipher": true }],
+      "expo-secure-store",
+      [
+        "expo-local-authentication",
+        { "faceIDPermission": "PERIODactyl usa Face ID para proteger tus datos." }
+      ],
+      "./plugins/pantalla-segura.js"
+    ]
+  }
+}
