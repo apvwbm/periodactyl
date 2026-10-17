@@ -141,6 +141,7 @@ const es = {
   'dia.dolor': 'Dolor o calambres',
   'dia.sintomas': 'Síntomas',
   'dia.animo': 'Ánimo',
+  'dia.ganas': 'Ganas de sexo',
   'dia.ejercicio': 'Ejercicio',
   'dia.sexo': 'Sexo',
   'dia.nota': 'Nota',
@@ -260,9 +261,7 @@ const es = {
   'ob.duraciones': '¿Cuánto suelen durar tu ciclo y tu regla?',
   'ob.duracionesH': '¿Cuánto suelen durar tu ciclo y tu sangrado?',
   'ob.duracionesAyuda':
-    'El ciclo va del primer día de una regla al día antes de la siguiente. Solo se usa hasta que tengas un ciclo apuntado.',
-  'ob.duracionesAyudaH':
-    'Cuenta desde el primer día de un sangrado hasta el primero del siguiente, no solo los días de pastillas: 21 días de píldora, parche o anillo y 7 de descanso son 28. Solo se usa hasta que tengas un ciclo apuntado.',
+    'El ciclo se cuenta desde que empieza una regla hasta que empieza la siguiente. Con píldora, parche o anillo cuenta también la semana de descanso: 21 + 7 son 28, no pastillas + regla. Solo se usa hasta que tengas un ciclo apuntado.',
   'ob.noSe': 'No lo sé',
   'ob.hormonal': '¿Usas anticoncepción hormonal?',
   'ob.hormonalAyuda': 'Píldora, parche, anillo, implante, inyección o DIU hormonal. El DIU de cobre no cuenta. Se puede cambiar en Ajustes.',
@@ -405,6 +404,7 @@ const en: Diccionario = {
   'dia.dolor': 'Pain or cramps',
   'dia.sintomas': 'Symptoms',
   'dia.animo': 'Mood',
+  'dia.ganas': 'Sex drive',
   'dia.ejercicio': 'Exercise',
   'dia.sexo': 'Sex',
   'dia.nota': 'Note',
@@ -519,9 +519,7 @@ const en: Diccionario = {
   'ob.duraciones': 'How long do your cycle and period usually last?',
   'ob.duracionesH': 'How long do your cycle and bleed usually last?',
   'ob.duracionesAyuda':
-    "A cycle runs from the first day of one period to the day before the next. Only used until you've logged a cycle.",
-  'ob.duracionesAyudaH':
-    "Count from the first day of one bleed to the first day of the next, not just the pill days: 21 days of pill, patch or ring plus a 7-day break make 28. Only used until you've logged a cycle.",
+    "A cycle is counted from the start of one period to the start of the next. On the pill, patch or ring, include the break week: 21 + 7 is 28, not pills + period. Only used until you've logged a cycle.",
   'ob.noSe': "I don't know",
   'ob.hormonal': 'Do you use hormonal contraception?',
   'ob.hormonalAyuda': "Pill, patch, ring, implant, injection or hormonal IUD. The copper IUD doesn't count. You can change it in Settings.",

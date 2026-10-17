@@ -1,8 +1,9 @@
 // Bienvenida: el aviso y seis preguntas cortas. Lo opcional se puede saltar y todo se
 // puede cambiar luego en Ajustes.
 //
-// La anticoncepción va antes que las fechas: con ella las preguntas hablan de
-// "sangrado" y explican que con 21 + 7 el ciclo son 28 días (no pastillas + regla).
+// Orden natural: cuándo te bajó, cuánto dura, y luego la anticoncepción. Por eso la
+// pregunta del ciclo explica a todas que con píldora, parche o anillo se cuenta la semana
+// de descanso (21 + 7 = 28): sumar pastillas + regla fue el error de May.
 //
 // Empieza en inglés (nada de detectar el idioma del móvil) y va con su propio idioma en
 // estado local, para que elegir "Español" en el primer paso traduzca el resto al momento.
@@ -23,10 +24,10 @@ import { espacio, useColores, useEstilos, type Paleta } from '@/theme';
 import type { Idioma } from '@/types';
 
 const AVISO = 0;
-const HORMONAL = 1;
-const FERTILIDAD = 2;
-const ULTIMA = 3;
-const DURACIONES = 4;
+const ULTIMA = 1;
+const DURACIONES = 2;
+const HORMONAL = 3;
+const FERTILIDAD = 4;
 const RECORDATORIO = 5;
 const BLOQUEO = 6;
 const TOTAL_PASOS = 7;
@@ -48,11 +49,11 @@ export default function Bienvenida() {
 
   const siguiente = () => setPaso(paso + 1);
   // Con anticoncepción hormonal no se pregunta por la fertilidad.
-  const anterior = () => setPaso(paso === ULTIMA && hormonal ? HORMONAL : paso - 1);
+  const anterior = () => setPaso(paso === RECORDATORIO && hormonal ? HORMONAL : paso - 1);
 
   const elegirHormonal = (si: boolean) => {
     setHormonal(si);
-    setPaso(si ? ULTIMA : FERTILIDAD);
+    setPaso(si ? RECORDATORIO : FERTILIDAD);
   };
 
   const activarRecordatorio = async () => {

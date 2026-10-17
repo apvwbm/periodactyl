@@ -1,4 +1,5 @@
-// Un día: flujo, dolor, ánimo, síntomas, ejercicio, sexo y, si hace falta, una nota.
+// Un día: flujo, dolor, ánimo, ganas, síntomas, ejercicio, sexo y, si hace falta, una
+// nota. Ganas y sexo van separados: se puede tener ganas sin sexo y al revés.
 // Cada cambio se guarda al momento; ‹ › mueve de día sin salir. No se apunta el futuro.
 //
 // La lista de síntomas sale de la investigación (Bruinvels 2021, datos de Clue, NICE
@@ -87,6 +88,14 @@ export default function PantallaDia() {
         {etiquetas(ANIMOS)}
       </Seccion>
 
+      <Seccion titulo={t('dia.ganas')} icono="heart">
+        <Chips>
+          {[true, false].map((x) => (
+            <Chip key={String(x)} texto={t(x ? 'deseo.si' : 'deseo.no')} activo={d.deseo === x} onPress={() => cambiar({ deseo: d.deseo === x ? null : x })} />
+          ))}
+        </Chips>
+      </Seccion>
+
       <Seccion titulo={t('dia.sintomas')} icono="thermometer">
         {etiquetas(SINTOMAS)}
       </Seccion>
@@ -99,12 +108,7 @@ export default function PantallaDia() {
         />
       </Seccion>
 
-      <Seccion titulo={t('dia.sexo')} icono="heart">
-        <Chips>
-          {[true, false].map((x) => (
-            <Chip key={String(x)} texto={t(x ? 'deseo.si' : 'deseo.no')} activo={d.deseo === x} onPress={() => cambiar({ deseo: d.deseo === x ? null : x })} />
-          ))}
-        </Chips>
+      <Seccion titulo={t('dia.sexo')} icono="users">
         <Chips>
           {SEXOS.map((x) => (
             <Chip key={x} texto={t(`sexo.${x}`)} activo={d.sexo === x} onPress={() => cambiar({ sexo: d.sexo === x ? null : x })} />

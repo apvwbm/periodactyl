@@ -420,7 +420,7 @@ igual('sin variante, la normal', variante('hoy.medico', true), 'hoy.medico');
 {
   // Ninguna palabra de la lista prohibida (PLAN.md §11) fuera de las negaciones del aviso.
   const prohibidas = /birth control|natural family|avoid pregnancy|safe days|can't get pregnant|get pregnant|trying to conceive|boost your chances|plan a pregnancy|fertile today|detect|diagnos|accurate|clinically|recommended|might be pregnant/i;
-  const textos = (['en', 'es'] as const).flatMap((i) => (['hoy.ventana', 'hoy.ventanaAyuda', 'ob.fertilidadAyuda', 'ob.duracionesAyudaH', 'cal.fertil', 'hoy.guiaRetraso', 'nota.sinRegla', 'deseo.si'] as const).map((k) => traducir(i, k)));
+  const textos = (['en', 'es'] as const).flatMap((i) => (['hoy.ventana', 'hoy.ventanaAyuda', 'ob.fertilidadAyuda', 'ob.duracionesAyuda', 'cal.fertil', 'hoy.guiaRetraso', 'nota.sinRegla', 'deseo.si'] as const).map((k) => traducir(i, k)));
   ok('sin palabras prohibidas', textos.every((t) => !prohibidas.test(t)));
 }
 {
